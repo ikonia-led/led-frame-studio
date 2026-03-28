@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ikonia | LED Frame Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="IKOINA_logo.png">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -18,8 +18,6 @@ body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-s
 
 /* HEADER */
 header{display:flex;align-items:center;gap:11px;padding:0 20px;height:52px;flex-shrink:0;border-bottom:1px solid var(--bd);background:rgba(7,7,7,.97);z-index:10;position:relative}
-.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#4dffb4,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo svg{color:#000}
 .aname{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.03em}
 .atag{font-size:10px;font-weight:700;letter-spacing:.07em;padding:2px 6px;border-radius:4px;background:rgba(77,255,180,.1);color:var(--ac);border:1px solid rgba(77,255,180,.18);margin-left:2px}
 .ahint{margin-left:auto;font-size:11px;color:var(--dim)}
@@ -150,14 +148,10 @@ input[type="range"]::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(77,255
 <body>
 
 <header>
-  <div class="logo">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1L15 5V11L8 15L1 11V5L8 1Z" stroke="#000" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
-      <circle cx="8" cy="8" r="2.5" fill="#000"/>
-    </svg>
-  </div>
-  <span class="aname">LED Frame Studio</span>
-  <span class="atag">v2</span>
+  <img src="IKOINA_logo.png" alt="Logo Ikonia" style="width:28px; height:28px; border-radius:7px; object-fit: contain;">
+  
+  <span class="aname">IKONIA</span>
+  <span class="atag">LED FRAME STUDIO</span>
   <span class="ahint">Arrastra tu cuadro · Configura · Descarga</span>
 </header>
 
