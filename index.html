@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ikonia | LED Frame Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#070707;--sf:#0f0f0f;--sf2:#161616;--sf3:#1e1e1e;
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.14);
+  --ac:#4dffb4;--text:#d8d8d8;--dim:#454545;--mid:#888;
+  --pw:314px;--r:10px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:14px;display:flex;flex-direction:column}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:11px;padding:0 20px;height:52px;flex-shrink:0;border-bottom:1px solid var(--bd);background:rgba(7,7,7,.97);z-index:10;position:relative}
+.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#4dffb4,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo svg{color:#000}
+.aname{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.03em}
+.atag{font-size:10px;font-weight:700;letter-spacing:.07em;padding:2px 6px;border-radius:4px;background:rgba(77,255,180,.1);color:var(--ac);border:1px solid rgba(77,255,180,.18);margin-left:2px}
+.ahint{margin-left:auto;font-size:11px;color:var(--dim)}
+
+/* LAYOUT */
+main{flex:1;display:flex;min-height:0;overflow:hidden}
+
+/* CANVAS ZONE */
+#cz{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,#0d0d0d 0%,#040404 100%)}
+#cz::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);background-size:36px 36px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%)}
+
+/* DROPZONE */
+#dz{display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;cursor:pointer;z-index:2;transition:background .2s}
+#dz.over{background:rgba(77,255,180,.025)}
+.dzb{display:flex;flex-direction:column;align-items:center;gap:18px;padding:42px 38px;border:1.5px dashed rgba(255,255,255,.08);border-radius:18px;max-width:310px;width:88%;transition:border-color .2s,background .2s}
+#dz.over .dzb{border-color:rgba(77,255,180,.4);background:rgba(77,255,180,.03)}
+.dzi{width:58px;height:58px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.dzi svg{opacity:.28}
+.dzt{font-size:15px;font-weight:700;color:#bbb;text-align:center}
+.dzs{font-size:12px;color:var(--dim);text-align:center;line-height:1.75}
+.dzp{display:flex;gap:6px}
+.pil{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--bd);color:var(--dim);font-weight:600}
+#fi{display:none}
+
+/* PREVIEW CANVAS */
+#pc{max-width:calc(100% - 40px);max-height:calc(100% - 40px);display:block;border-radius:2px}
+
+/* PANEL */
+aside{width:var(--pw);flex-shrink:0;border-left:1px solid var(--bd);background:var(--sf);display:flex;flex-direction:column;overflow:hidden}
+.ph{padding:15px 20px 13px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.ph h2{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.ps{flex:1;overflow-y:auto;padding:15px 18px;display:flex;flex-direction:column;gap:14px}
+.ps::-webkit-scrollbar{width:3px}
+.ps::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* EMPTY */
+#pe{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1;padding:40px 24px;text-align:center}
+#pe svg{opacity:.1}
+#pe p{font-size:12px;color:var(--dim);line-height:1.75}
+
+/* FILE BADGE */
+.fbg{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)}
+.fdot{width:7px;height:7px;border-radius:50%;background:var(--ac);flex-shrink:0;box-shadow:0 0 8px var(--ac)}
+.fn{font-size:12px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.fch{font-size:10px;font-weight:700;color:var(--dim);cursor:pointer;padding:3px 7px;border-radius:4px;border:1px solid var(--bd);flex-shrink:0;letter-spacing:.03em;transition:color .15s,border-color .15s;white-space:nowrap}
+.fch:hover{color:#aaa;border-color:var(--bd2)}
+
+/* CTRL */
+.ctrl{display:flex;flex-direction:column;gap:7px}
+.cl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+
+/* TOGGLE */
+.tr{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)}
+.tl{font-size:13px;font-weight:600;color:var(--text)}
+.sw{position:relative;width:38px;height:21px;display:inline-block;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.swt{position:absolute;inset:0;background:#1d1d1d;border-radius:11px;cursor:pointer;border:1px solid rgba(255,255,255,.08);transition:background .2s}
+.sw input:checked+.swt{background:var(--ac);border-color:var(--ac)}
+.swth{position:absolute;top:3px;left:3px;width:15px;height:15px;background:#fff;border-radius:50%;pointer-events:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.sw input:checked~.swth{transform:translateX(17px)}
+
+/* COLOR PRESETS — round for LED */
+.prr{display:flex;gap:6px;flex-wrap:wrap}
+.pr{width:25px;height:25px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:border-color .15s,transform .15s;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,.5) inset}
+.pr:hover{transform:scale(1.16)}
+.pr.on{border-color:rgba(255,255,255,.8)!important;transform:scale(1.1)}
+
+/* WALL PRESETS — square */
+.wpr{width:25px;height:25px;border-radius:6px;cursor:pointer;border:2.5px solid transparent;transition:border-color .15s,transform .15s;flex-shrink:0}
+.wpr:hover{transform:scale(1.12)}
+.wpr.on{border-color:rgba(255,255,255,.78)!important;transform:scale(1.08)}
+
+/* COLOR PICKER ROW */
+.cpr{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)}
+input[type="color"]{width:24px;height:24px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;flex-shrink:0}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+input[type="color"]::-webkit-color-swatch{border:none;border-radius:3px}
+.chex{font-family:'DM Mono',monospace;font-size:12px;color:var(--mid);flex:1;letter-spacing:.04em}
+.chash{font-family:'DM Mono',monospace;font-size:12px;color:var(--dim)}
+
+/* SELECT */
+select{width:100%;padding:9px 28px 9px 11px;appearance:none;outline:none;background:var(--sf2) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23555' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 11px center;border:1px solid var(--bd);border-radius:var(--r);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;transition:border-color .15s}
+select:hover,select:focus{border-color:var(--bd2)}
+
+/* SLIDER */
+.sr{display:flex;align-items:center;gap:10px}
+input[type="range"]{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;appearance:none;outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;background:var(--ac);border-radius:50%;cursor:pointer;box-shadow:0 0 0 3px rgba(77,255,180,.14),0 0 9px rgba(77,255,180,.28);transition:box-shadow .15s}
+input[type="range"]::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(77,255,180,.2),0 0 14px rgba(77,255,180,.38)}
+.sv{font-family:'DM Mono',monospace;font-size:12px;color:var(--mid);min-width:32px;text-align:right}
+
+/* DIVIDER */
+.dv{height:1px;background:var(--bd)}
+
+/* TABS */
+.tabs{display:flex;gap:3px;padding:3px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)}
+.tab{flex:1;padding:7px 6px;border:none;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--dim);border-radius:7px;transition:background .15s,color .15s;text-align:center}
+.tab.on{background:var(--sf3);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+/* WALL IMAGE DROP */
+.wdrop{border:1.5px dashed rgba(255,255,255,.09);border-radius:var(--r);padding:20px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:9px;transition:border-color .2s,background .2s;text-align:center}
+.wdrop:hover,.wdrop.over{border-color:rgba(77,255,180,.35);background:rgba(77,255,180,.025)}
+.wdrop svg{opacity:.28}
+.wdrop strong{font-size:12px;color:#777;font-weight:700;display:block;margin-bottom:2px}
+.wdrop p{font-size:11px;color:var(--dim);line-height:1.5}
+#wfi{display:none}
+
+/* WALL IMAGE PREVIEW */
+.wip{display:flex;align-items:center;gap:9px;padding:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)}
+.wthumb{width:50px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--bd)}
+.winame{font-size:11px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wisub{font-size:10px;color:var(--dim);margin-top:2px}
+.wirm{flex-shrink:0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;background:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--dim);font-family:'Syne',sans-serif;transition:color .15s,border-color .15s}
+.wirm:hover{color:#cc5555;border-color:rgba(200,80,80,.35)}
+
+/* DOWNLOAD */
+.dw{padding:14px 18px;border-top:1px solid var(--bd);flex-shrink:0}
+.btndl{width:100%;padding:13px;background:var(--ac);color:#000;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;transition:opacity .15s,transform .1s,box-shadow .15s;box-shadow:0 0 22px rgba(77,255,180,.18)}
+.btndl:hover{opacity:.91;box-shadow:0 0 32px rgba(77,255,180,.3)}
+.btndl:active{transform:scale(.98)}
+.btndl:disabled{opacity:.2;cursor:not-allowed;background:#444;box-shadow:none}
+.rn{font-size:11px;color:var(--dim);text-align:center;margin-top:7px}
+
+.hid{display:none!important}
+.fdd{opacity:.3;pointer-events:none;transition:opacity .2s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1L15 5V11L8 15L1 11V5L8 1Z" stroke="#000" stroke-width="1.7" fill="none" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="2.5" fill="#000"/>
+    </svg>
+  </div>
+  <span class="aname">LED Frame Studio</span>
+  <span class="atag">v2</span>
+  <span class="ahint">Arrastra tu cuadro · Configura · Descarga</span>
+</header>
+
+<main>
+
+  <!-- CANVAS ZONE -->
+  <div id="cz">
+    <div id="dz">
+      <div class="dzb">
+        <div class="dzi">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M3 15l4.5-5 4 4.5 2.5-2.5 4 4.5"/>
+            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="dzt">Arrastra tu diseño aquí</div>
+        <div class="dzs">o haz clic para explorar archivos<br>Se acepta cualquier tamaño</div>
+        <div class="dzp">
+          <div class="pil">JPG</div><div class="pil">PNG</div><div class="pil">WEBP</div>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="fi" accept="image/*">
+    <canvas id="pc" class="hid"></canvas>
+  </div>
+
+  <!-- PANEL -->
+  <aside>
+    <div class="ph"><h2>Configuración LED</h2></div>
+
+    <div id="pe">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <p>Carga la imagen del cuadro<br>para activar el editor LED</p>
+    </div>
+
+    <div class="ps hid" id="pctrl">
+
+      <!-- File badge -->
+      <div class="fbg">
+        <div class="fdot"></div>
+        <div class="fn" id="fn">imagen.jpg</div>
+        <div class="fch" id="fchb">Cambiar</div>
+      </div>
+
+      <!-- LED Toggle -->
+      <div class="ctrl">
+        <div class="tr">
+          <span class="tl">Luz LED activa</span>
+          <label class="sw">
+            <input type="checkbox" id="ltog" checked>
+            <div class="swt"></div>
+            <div class="swth"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- LED Options -->
+      <div id="lopt">
+
+        <!-- LED Color -->
+        <div class="ctrl">
+          <div class="cl">Color de la Luz</div>
+          <div class="prr" id="lprr">
+            <div class="pr on" data-c="#ffffff" style="background:#fff" title="Blanco frío"></div>
+            <div class="pr" data-c="#ffe8a0" style="background:#ffe8a0" title="Blanco cálido"></div>
+            <div class="pr" data-c="#00e5ff" style="background:#00e5ff" title="Cian eléctrico"></div>
+            <div class="pr" data-c="#ff2d78" style="background:#ff2d78" title="Rosa neón"></div>
+            <div class="pr" data-c="#ffb300" style="background:#ffb300" title="Ámbar dorado"></div>
+            <div class="pr" data-c="#39ff14" style="background:#39ff14" title="Verde neón"></div>
+            <div class="pr" data-c="#7b2fff" style="background:#7b2fff" title="Violeta"></div>
+            <div class="pr" data-c="#ff4500" style="background:#ff4500" title="Naranja rojo"></div>
+            <div class="pr" data-c="#ff6ec7" style="background:#ff6ec7" title="Rosa suave"></div>
+            <div class="pr" data-c="#00ff88" style="background:#00ff88" title="Menta"></div>
+            <div class="pr" data-c="#ffd700" style="background:#ffd700" title="Oro"></div>
+            <div class="pr" data-c="#00bfff" style="background:#00bfff" title="Azul cielo"></div>
+          </div>
+          <div class="cpr">
+            <input type="color" id="lcp" value="#ffffff">
+            <span class="chash">#</span>
+            <span class="chex" id="lhex">ffffff</span>
+          </div>
+        </div>
+
+        <!-- Position -->
+        <div class="ctrl">
+          <div class="cl">Posición de la Luz</div>
+          <select id="pos">
+            <option value="perimeter">☰ Todo el perímetro</option>
+            <option value="top">↑ Solo arriba</option>
+            <option value="bottom">↓ Solo abajo</option>
+            <option value="sides">← Izquierda y Derecha →</option>
+          </select>
+        </div>
+
+        <!-- Intensity -->
+        <div class="ctrl">
+          <div class="cl">Intensidad del brillo</div>
+          <div class="sr">
+            <input type="range" id="intr" min="10" max="100" value="90" step="1">
+            <span class="sv" id="intv">90%</span>
+          </div>
+        </div>
+
+        <!-- Spread -->
+        <div class="ctrl">
+          <div class="cl">Radio de difusión</div>
+          <div class="sr">
+            <input type="range" id="spr" min="10" max="100" value="75" step="1">
+            <span class="sv" id="sprv">75%</span>
+          </div>
+        </div>
+
+      </div><!-- /lopt -->
+
+      <div class="dv"></div>
+
+      <!-- WALL / BACKGROUND -->
+      <div class="ctrl">
+        <div class="cl">Fondo de Pared</div>
+
+        <div class="tabs">
+          <button class="tab on" data-tab="color">Color sólido</button>
+          <button class="tab" data-tab="img">Foto de sala</button>
+        </div>
+
+        <!-- Color panel -->
+        <div id="wcp-panel">
+          <div class="prr" id="wprr" style="margin-top:2px">
+            <div class="wpr on" data-wc="#090909" style="background:#090909;outline:1px solid #2a2a2a" title="Noche pura"></div>
+            <div class="wpr" data-wc="#141414" style="background:#141414" title="Carbón"></div>
+            <div class="wpr" data-wc="#1f1f1f" style="background:#1f1f1f" title="Grafito"></div>
+            <div class="wpr" data-wc="#2d2d2d" style="background:#2d2d2d" title="Gris oscuro"></div>
+            <div class="wpr" data-wc="#3c3c3c" style="background:#3c3c3c" title="Gris medio"></div>
+            <div class="wpr" data-wc="#130a04" style="background:#130a04" title="Café quemado"></div>
+            <div class="wpr" data-wc="#1d1205" style="background:#1d1205" title="Ámbar oscuro"></div>
+            <div class="wpr" data-wc="#3a2810" style="background:#3a2810" title="Madera"></div>
+            <div class="wpr" data-wc="#070c16" style="background:#070c16" title="Azul marino"></div>
+            <div class="wpr" data-wc="#0d0818" style="background:#0d0818" title="Violeta oscuro"></div>
+            <div class="wpr" data-wc="#07100a" style="background:#07100a" title="Verde selva"></div>
+            <div class="wpr" data-wc="#180808" style="background:#180808" title="Granate"></div>
+          </div>
+          <div class="cpr" style="margin-top:2px">
+            <input type="color" id="wcpick" value="#090909">
+            <span class="chash">#</span>
+            <span class="chex" id="wchex">090909</span>
+          </div>
+        </div>
+
+        <!-- Image panel -->
+        <div id="wip-panel" class="hid">
+          <div class="wdrop" id="wdrop" style="margin-top:2px">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 15l4-4 4 4 3-3 4 4"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+            <div>
+              <strong>Arrastra una foto de sala</strong>
+              <p>JPG o PNG de tu habitación<br>El cuadro se montará encima</p>
+            </div>
+          </div>
+          <input type="file" id="wfi" accept="image/*">
+          <div class="wip hid" id="wipr" style="margin-top:4px">
+            <img class="wthumb" id="wthumb" src="" alt="">
+            <div style="flex:1;overflow:hidden">
+              <div class="winame" id="winame">sala.jpg</div>
+              <div class="wisub">Fondo de pared</div>
+            </div>
+            <button class="wirm" id="wirm">✕</button>
+          </div>
+          <div class="ctrl" style="margin-top:10px">
+            <div class="cl">Oscuridad del fondo</div>
+            <div class="sr">
+              <input type="range" id="wdark" min="0" max="70" value="25" step="1">
+              <span class="sv" id="wdarkv">25%</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /wall ctrl -->
+
+    </div><!-- /ps -->
+
+    <div class="dw">
+      <button class="btndl" id="dlbtn" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Descargar PNG
+      </button>
+      <div class="rn hid" id="rn">Generando en alta resolución…</div>
+    </div>
+  </aside>
+</main>
+
+<script>
+'use strict';
+
+// ─── STATE ───────────────────────────────────
+let frameImg = null;
+let wallImg  = null;
+const S = {
+  ledOn:    true,
+  color:    '#ffffff',
+  position: 'perimeter',
+  intensity: 90,
+  spread:    75,
+  wallMode:  'color',
+  wallColor: '#090909',
+  wallDark:  25,
+};
+
+// ─── REFS ────────────────────────────────────
+const CZ     = document.getElementById('cz');
+const DZ     = document.getElementById('dz');
+const FI     = document.getElementById('fi');
+const PC     = document.getElementById('pc');
+const PE     = document.getElementById('pe');
+const PCTRL  = document.getElementById('pctrl');
+const LTOG   = document.getElementById('ltog');
+const LOPT   = document.getElementById('lopt');
+const LCP    = document.getElementById('lcp');
+const LHEX   = document.getElementById('lhex');
+const POS    = document.getElementById('pos');
+const INTR   = document.getElementById('intr');
+const INTV   = document.getElementById('intv');
+const SPR    = document.getElementById('spr');
+const SPRV   = document.getElementById('sprv');
+const DLBTN  = document.getElementById('dlbtn');
+const FN     = document.getElementById('fn');
+const RN     = document.getElementById('rn');
+const WCPICK = document.getElementById('wcpick');
+const WCHEX  = document.getElementById('wchex');
+const WDROP  = document.getElementById('wdrop');
+const WFI    = document.getElementById('wfi');
+const WIPR   = document.getElementById('wipr');
+const WTHUMB = document.getElementById('wthumb');
+const WINAME = document.getElementById('winame');
+const WIRM   = document.getElementById('wirm');
+const WDARK  = document.getElementById('wdark');
+const WDARKV = document.getElementById('wdarkv');
+
+// ─── FRAME IMAGE ─────────────────────────────
+function loadFrame(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const i = new Image();
+  i.onload = () => {
+    frameImg = i;
+    const n = file.name;
+    FN.textContent = n.length > 26 ? n.slice(0,24)+'…' : n;
+    DZ.classList.add('hid');
+    PC.classList.remove('hid');
+    PE.classList.add('hid');
+    PCTRL.classList.remove('hid');
+    DLBTN.disabled = false;
+    scheduleRender();
+  };
+  i.src = URL.createObjectURL(file);
+}
+DZ.addEventListener('dragover', e => { e.preventDefault(); DZ.classList.add('over'); });
+DZ.addEventListener('dragleave', () => DZ.classList.remove('over'));
+DZ.addEventListener('drop', e => { e.preventDefault(); DZ.classList.remove('over'); loadFrame(e.dataTransfer.files[0]); });
+DZ.addEventListener('click', () => FI.click());
+FI.addEventListener('change', e => loadFrame(e.target.files[0]));
+document.getElementById('fchb').addEventListener('click', () => FI.click());
+
+// ─── WALL IMAGE ──────────────────────────────
+function loadWallImg(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  const i = new Image();
+  i.onload = () => {
+    wallImg = i;
+    WTHUMB.src = url;
+    const n = file.name;
+    WINAME.textContent = n.length > 22 ? n.slice(0,20)+'…' : n;
+    WDROP.classList.add('hid');
+    WIPR.classList.remove('hid');
+    scheduleRender();
+  };
+  i.src = url;
+}
+function clearWallImg() {
+  wallImg = null;
+  WTHUMB.src = '';
+  WDROP.classList.remove('hid');
+  WIPR.classList.add('hid');
+  scheduleRender();
+}
+WDROP.addEventListener('dragover', e => { e.preventDefault(); WDROP.classList.add('over'); });
+WDROP.addEventListener('dragleave', () => WDROP.classList.remove('over'));
+WDROP.addEventListener('drop', e => { e.preventDefault(); WDROP.classList.remove('over'); loadWallImg(e.dataTransfer.files[0]); });
+WDROP.addEventListener('click', () => WFI.click());
+WFI.addEventListener('change', e => loadWallImg(e.target.files[0]));
+WIRM.addEventListener('click', clearWallImg);
+
+// ─── TABS ────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    S.wallMode = btn.dataset.tab;
+    document.getElementById('wcp-panel').classList.toggle('hid', S.wallMode !== 'color');
+    document.getElementById('wip-panel').classList.toggle('hid', S.wallMode !== 'img');
+    scheduleRender();
+  });
+});
+
+// ─── LED COLOR ───────────────────────────────
+function setLedColor(hex) {
+  S.color = hex; LCP.value = hex; LHEX.textContent = hex.replace('#','');
+}
+LCP.addEventListener('input', () => {
+  setLedColor(LCP.value);
+  document.querySelectorAll('#lprr .pr').forEach(p => p.classList.remove('on'));
+  scheduleRender();
+});
+document.querySelectorAll('#lprr .pr').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#lprr .pr').forEach(x => x.classList.remove('on'));
+    p.classList.add('on');
+    setLedColor(p.dataset.c);
+    scheduleRender();
+  });
+});
+
+// ─── WALL COLOR ──────────────────────────────
+function setWallColor(hex) {
+  S.wallColor = hex; WCPICK.value = hex; WCHEX.textContent = hex.replace('#','');
+}
+WCPICK.addEventListener('input', () => {
+  setWallColor(WCPICK.value);
+  document.querySelectorAll('#wprr .wpr').forEach(p => p.classList.remove('on'));
+  scheduleRender();
+});
+document.querySelectorAll('#wprr .wpr').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#wprr .wpr').forEach(x => x.classList.remove('on'));
+    p.classList.add('on');
+    setWallColor(p.dataset.wc);
+    scheduleRender();
+  });
+});
+
+// ─── OTHER CONTROLS ──────────────────────────
+LTOG.addEventListener('change', () => { S.ledOn = LTOG.checked; LOPT.classList.toggle('fdd', !S.ledOn); scheduleRender(); });
+POS.addEventListener('change',  () => { S.position  = POS.value;  scheduleRender(); });
+INTR.addEventListener('input',  () => { S.intensity = +INTR.value; INTV.textContent  = S.intensity+'%'; scheduleRender(); });
+SPR.addEventListener('input',   () => { S.spread    = +SPR.value;  SPRV.textContent  = S.spread+'%';    scheduleRender(); });
+WDARK.addEventListener('input', () => { S.wallDark  = +WDARK.value; WDARKV.textContent = S.wallDark+'%'; scheduleRender(); });
+DLBTN.addEventListener('click', doDownload);
+window.addEventListener('resize', scheduleRender);
+
+// ─── RENDER ENGINE ───────────────────────────
+function getEdges(pos) {
+  return ({
+    perimeter:{T:1,B:1,L:1,R:1},
+    top:      {T:1,B:0,L:0,R:0},
+    bottom:   {T:0,B:1,L:0,R:0},
+    sides:    {T:0,B:0,L:1,R:1},
+  })[pos] || {T:1,B:1,L:1,R:1};
+}
+
+/**
+ * RENDER PIPELINE — LED Backlighting
+ *
+ * Physical model: LED strip is glued to the BACK edges of the frame panel.
+ * Light radiates outward onto the wall (visible in PAD area) and partially
+ * wraps around to tint the front face of the art print.
+ *
+ * Steps:
+ *  1.  Draw wall/room background
+ *  2.  Build offscreen glow source (thick colored strips at selected edges)
+ *  3.  Bloom: composite glow source 5× with decreasing blur & increasing alpha
+ *      → realistic bloom: bright at strip edge, soft at wall distance
+ *  4.  Frame drop shadow (depth / elevation)
+ *  5.  Draw image (covers the interior part of the LED strips)
+ *  6.  Ambient screen blend on image face (LED glow wraps to front)
+ *  7.  Hairline frame border
+ */
+function renderScene(out, IW, IH) {
+  const PAD = Math.round(Math.max(Math.min(IW, IH) * 0.30, 90));
+  out.width  = IW + PAD * 2;
+  out.height = IH + PAD * 2;
+  const ctx = out.getContext('2d');
+  const cw = out.width, ch = out.height;
+  const INT = S.intensity / 100;
+  const SPD = S.spread    / 100;
+
+  // ── 1. BACKGROUND ────────────────────────
+  if (S.wallMode === 'img' && wallImg) {
+    const wi = wallImg;
+    const sc = Math.max(cw / wi.naturalWidth, ch / wi.naturalHeight);
+    const bw = wi.naturalWidth * sc, bh = wi.naturalHeight * sc;
+    const bx = (cw - bw) / 2,      by = (ch - bh) / 2;
+    // Slight depth-of-field blur on background
+    ctx.filter = 'blur(2px)';
+    ctx.drawImage(wi, bx, by, bw, bh);
+    ctx.filter = 'none';
+    // Darkness overlay so frame/glow stands out
+    ctx.fillStyle = `rgba(0,0,0,${S.wallDark / 100})`;
+    ctx.fillRect(0, 0, cw, ch);
+  } else {
+    ctx.fillStyle = S.wallColor;
+    ctx.fillRect(0, 0, cw, ch);
+    // Radial vignette — centre brighter, corners darker
+    const vg = ctx.createRadialGradient(cw/2, ch/2, 0, cw/2, ch/2, Math.max(cw,ch) * 0.65);
+    vg.addColorStop(0, 'rgba(255,255,255,0.035)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.50)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch);
+  }
+
+  // ── 2 + 3. LED BLOOM ─────────────────────
+  if (S.ledOn) {
+    // Offscreen glow source
+    const gs = document.createElement('canvas');
+    gs.width = cw; gs.height = ch;
+    const gc = gs.getContext('2d');
+    const E  = getEdges(S.position);
+    const ix = PAD, iy = PAD;
+
+    // Thick strips = strong source for the blur to work from.
+    // The image drawn later covers the inner portion; only the
+    // outward bloom on the "wall" (PAD area) remains visible.
+    const ST = Math.max(22, Math.round(Math.min(IW, IH) * 0.05));
+    gc.fillStyle = S.color;
+    if (E.T) gc.fillRect(ix,           iy,           IW,  ST);
+    if (E.B) gc.fillRect(ix,           iy+IH-ST,     IW,  ST);
+    if (E.L) gc.fillRect(ix,           iy,           ST,  IH);
+    if (E.R) gc.fillRect(ix+IW-ST,     iy,           ST,  IH);
+
+    // 5 bloom passes: wide→tight blur, low→high alpha.
+    // Accumulated result on wall near edge ≈ near-full LED color saturation.
+    // Accumulated result at PAD edge ≈ ~30% of color (realistic soft halo).
+    const maxB = PAD * SPD * 1.15;
+    [
+      [maxB * 1.00, 0.58 * INT],
+      [maxB * 0.55, 0.64 * INT],
+      [maxB * 0.26, 0.70 * INT],
+      [maxB * 0.10, 0.76 * INT],
+      [maxB * 0.03, 0.84 * INT],
+    ].forEach(([blur, alpha]) => {
+      if (blur < 0.3) return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.filter = `blur(${blur.toFixed(2)}px)`;
+      ctx.drawImage(gs, 0, 0);
+      ctx.restore();
+    });
+    ctx.filter = 'none';
+  }
+
+  // ── 4. FRAME SHADOW ──────────────────────
+  ctx.save();
+  ctx.shadowColor   = 'rgba(0,0,0,0.97)';
+  ctx.shadowBlur    = PAD * 0.6;
+  ctx.shadowOffsetY = PAD * 0.12;
+  ctx.fillStyle     = '#000';
+  ctx.fillRect(PAD, PAD, IW, IH);
+  ctx.restore();
+
+  // ── 5. IMAGE ─────────────────────────────
+  ctx.drawImage(frameImg, PAD, PAD, IW, IH);
+
+  // ── 6. AMBIENT LIGHT ON IMAGE FACE ───────
+  // Screen blend: LEDs partially illuminate the front of the print.
+  // Especially visible on dark areas near the frame edges.
+  if (S.ledOn) {
+    const AMB  = INT * 0.45;
+    const RECH = Math.min(IW, IH) * 0.50;
+    const E    = getEdges(S.position);
+    const ix   = PAD, iy = PAD;
+    const c    = S.color;
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(ix, iy, IW, IH); ctx.clip();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = AMB;
+
+    const grad = (x0,y0,x1,y1, rx,ry,rw,rh) => {
+      const g = ctx.createLinearGradient(x0,y0,x1,y1);
+      g.addColorStop(0, c); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(rx,ry,rw,rh);
+    };
+    if (E.T) grad(0,iy,      0,iy+RECH,      ix,iy,          IW,RECH);
+    if (E.B) grad(0,iy+IH,   0,iy+IH-RECH,   ix,iy+IH-RECH,  IW,RECH);
+    if (E.L) grad(ix,0,      ix+RECH,0,       ix,iy,          RECH,IH);
+    if (E.R) grad(ix+IW,0,   ix+IW-RECH,0,   ix+IW-RECH,iy,  RECH,IH);
+    ctx.restore();
+  }
+
+  // ── 7. FRAME BORDER ──────────────────────
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth   = 1;
+  ctx.strokeRect(PAD+.5, PAD+.5, IW-1, IH-1);
+  ctx.restore();
+}
+
+// ─── PREVIEW ─────────────────────────────────
+let rafId = null;
+function scheduleRender() {
+  if (!frameImg) return;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(() => {
+    const maxW = CZ.clientWidth  - 48;
+    const maxH = CZ.clientHeight - 48;
+    const sc   = Math.min(maxW / frameImg.naturalWidth, maxH / frameImg.naturalHeight, 1.5);
+    const IW   = Math.round(frameImg.naturalWidth  * sc);
+    const IH   = Math.round(frameImg.naturalHeight * sc);
+    renderScene(PC, IW, IH);
+    rafId = null;
+  });
+}
+
+// ─── DOWNLOAD ────────────────────────────────
+function doDownload() {
+  if (!frameImg) return;
+  DLBTN.disabled = true;
+  RN.classList.remove('hid');
+  requestAnimationFrame(() => setTimeout(() => {
+    try {
+      const MAX = 4096;
+      const sc  = Math.min(MAX / frameImg.naturalWidth, MAX / frameImg.naturalHeight, 1);
+      const IW  = Math.round(frameImg.naturalWidth  * sc);
+      const IH  = Math.round(frameImg.naturalHeight * sc);
+      const dlC = document.createElement('canvas');
+      renderScene(dlC, IW, IH);
+      const a   = document.createElement('a');
+      a.download = 'cuadro-led-render.png';
+      a.href     = dlC.toDataURL('image/png');
+      a.click();
+    } finally {
+      RN.classList.add('hid');
+      DLBTN.disabled = false;
+    }
+  }, 60));
+}
+</script>
+</body>
+</html>
